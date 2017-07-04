@@ -1,0 +1,19 @@
+#!/bin/sh
+
+readonly RECEIVE_DIR="$HOME/duplex"
+readonly RESULT_DIR="$HOME/single"
+
+while true
+do
+	inotifywait -qqe create "$RECEIVE_DIR"
+
+	files="`ls "$RECEIVE_DIR"`"
+	if [ "`printf "%s\n" "$files" | wc -l`" -ge "2" ]
+	then
+		fronts="`printf %s "$files" | head -n1`"
+		backs="`printf %s "$files" | head -n2 | tail -n1`"
+
+		pdftk A="$RECEIVE_DIR/$fronts" B="$RECEIVE_DIR/$backs" shuffle A Bend-1 output "$RESULT_DIR/$fronts"
+		rm "$RECEIVE_DIR/$fronts" "$RECEIVE_DIR/$backs"
+	fi
+done
